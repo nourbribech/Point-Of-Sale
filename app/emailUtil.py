@@ -56,5 +56,5 @@ async def send_with_template(to:str,variables:dict):
         )
 
     fm = FastMail(conf)
-    await fm.send_message(message, template_name="test.html") 
+    await fm.send_message(message, template_name="account_activation.html") 
     

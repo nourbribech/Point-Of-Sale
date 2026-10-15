@@ -8,6 +8,7 @@ class AccountActivation(Base):
 
     id=Column(Integer,primary_key=True,nullable=False)
     employee_id=Column(ForeignKey("employees.id"),nullable=False)
+    email=Column(String,nullable=False)
     token=Column(String,nullable=False)
     created_on=Column(DateTime, nullable=False,server_default=func.now())
     status=Column(Enum(TokenStatus),nullable=False)

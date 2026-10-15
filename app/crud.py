@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from . import models,schemas,emailUtil
-from .models import EmployeeRole
-
+from .models import EmployeeRole,AccountActivation
+from .enums import TokenStatus
+import uuid 
 def get(db:Session, id:int):
     return db.query(models.Employee).filter(models.Employee.id==id).first()
     #<=> translated into an sql query
@@ -26,10 +27,16 @@ async def add(db:Session,employee:schemas.EmployeeCreate):
     db.commit()#tsajel change fi db commit vs flush
     db.refresh(db_employee)#baad refresh db atat id ll employee ki naml refresh we get the id
 
+    #add confirmation code
+    token=str(uuid.uuid1())
+    activation_code=models.AccountActivation(employee_id=db_employee.id,email=db_employee.email,status=TokenStatus.PENDING,token=token)
+    db.add(activation_code)
+    db.commit()
+    link = f"http://127.0.0.1:8000/employee/activate?token={token}"
     for role in roles:#parcours indiv de chaque role car on a pas un champ roles ds la table Employee
         db_role=models.EmployeeRole(role_name=role,employee_id=db_employee.id)
         db.add(db_role)
     db.commit()
-    await emailUtil.send_with_template(db_employee.email,{"first_name": db_employee.first_name,})
+    await emailUtil.send_with_template(db_employee.email,{"first_name": db_employee.first_name,'link':link, 'code':activation_code.token})
     return db_employee #and let response_model=schemas.EmployeeOut in your route do the conversion. 
     #<=>return schemas.EmployeeOut.model_validate(db_employee) model_validate converts an orm object explicitly 
