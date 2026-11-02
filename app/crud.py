@@ -40,3 +40,9 @@ async def add(db:Session,employee:schemas.EmployeeCreate):
     await emailUtil.send_with_template(db_employee.email,{"first_name": db_employee.first_name,'link':link, 'code':activation_code.token})
     return db_employee #and let response_model=schemas.EmployeeOut in your route do the conversion. 
     #<=>return schemas.EmployeeOut.model_validate(db_employee) model_validate converts an orm object explicitly 
+
+def get_confirmation_code(db:Session,code:str):
+    return db.query(models.AccountActivation).filter(models.AccountActivation.token==code).first() #The function returns one AccountActivation object, or None if no row matches.
+# SELECT * FROM account_activation
+# WHERE token = :code
+# LIMIT 1, then fetch it
